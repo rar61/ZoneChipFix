@@ -1,0 +1,6 @@
+<Project>
+  <PropertyGroup>
+    <TorchBinaries Condition="$(TorchBinaries)==''"></TorchBinaries>
+    <GameBinaries Condition="$(GameBinaries)==''">$(TorchBinaries)\DedicatedServer64</GameBinaries>
+  </PropertyGroup>
+</Project>

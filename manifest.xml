@@ -1,0 +1,7 @@
+<?xml version="1.0"?>
+<PluginManifest xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <Name>ZoneChipFix</Name>
+  <Guid>fe8660e2-3a97-4c03-a7c2-0c21718c66c9</Guid>
+  <Repository>rar61/ZoneChipFix</Repository>
+  <Version>v0.0.1</Version>
+</PluginManifest>

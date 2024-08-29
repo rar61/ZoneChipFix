@@ -1,0 +1,78 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net48</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <PackPlugin>true</PackPlugin>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)'=='Release'">
+    <DebugSymbols>False</DebugSymbols>
+    <DebugType>None</DebugType>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="!Exists('$(MSBuildProjectFullPath).user')">
+    <GameBinaries Condition="$(GameBinaries)==''">$(TorchBinaries)\DedicatedServer64</GameBinaries>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Content Include="manifest.xml" CopyToPublishDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="NLog" Version="4.4.12">
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="Torch">
+      <HintPath>$(TorchBinaries)\Torch.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="Torch.API">
+      <HintPath>$(TorchBinaries)\Torch.API.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="Vrage">
+      <HintPath>$(GameBinaries)\Vrage.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="Vrage.Library">
+      <HintPath>$(GameBinaries)\Vrage.Library.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="Vrage.Game">
+      <HintPath>$(GameBinaries)\Vrage.Game.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="Sandbox.Game">
+      <HintPath>$(GameBinaries)\Sandbox.Game.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="Sandbox.Common">
+      <HintPath>$(GameBinaries)\Sandbox.Common.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="SpaceEngineers.Game">
+      <HintPath>$(GameBinaries)\SpaceEngineers.Game.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+  </ItemGroup>
+
+  <Target Name="PackPlugin" AfterTargets="Publish" Condition="'$(PackPlugin)'=='true'">
+    <ItemGroup>
+      <SourceFiles Include="$(PublishDir)\*.*" Exclude="**\*.zip" />
+    </ItemGroup>
+    <Move
+      SourceFiles="@(SourceFiles)"
+      DestinationFolder="$(PublishDir)\$(MSBuildProjectName)"
+    />
+    <ZipDirectory
+      SourceDirectory="$(PublishDir)\$(MSBuildProjectName)"
+      DestinationFile="$(PublishDir)\$(MSBuildProjectName).zip"
+      Overwrite = "true"
+    />
+  </Target>
+
+</Project>
