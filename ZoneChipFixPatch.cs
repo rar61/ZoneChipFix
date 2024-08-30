@@ -21,8 +21,9 @@ namespace ZoneChipFix
     [PatchShim]
     static class ZoneChipFixPatch
     {
-        static readonly Logger log = LogManager.GetCurrentClassLogger();
+        public static float ChipConsumptionMultiplier = 1;
 
+        static readonly Logger log = LogManager.GetCurrentClassLogger();
         static readonly MyDefinitionId ZoneChipDefinition = new MyDefinitionId(typeof(MyObjectBuilder_Component), "ZoneChip");
 
 #pragma warning disable CS0649
@@ -60,28 +61,28 @@ namespace ZoneChipFix
             var totalPlayTime = new TimeSpan(MySandboxGame.TotalGamePlayTimeInMilliseconds * TimeSpan.TicksPerMillisecond);
 
             var remainingTime = upkeepTime - totalPlayTime;
+            if (remainingTime > TimeSpan.Zero) return true;
             remainingTime = -remainingTime;
 
             var safeZoneUpkeepTime = new TimeSpan(GetSafezoneDefinition(parentBlock).SafeZoneUpkeepTimeM * TimeSpan.TicksPerMinute);
             if (safeZoneUpkeepTime == TimeSpan.Zero) return false;
 
-            var safeZoneUpkeep = GetSafezoneDefinition(parentBlock).SafeZoneUpkeep;
-            if (safeZoneUpkeep == 0) return true;
+            var safeZoneUpkeep = new MyFixedPoint() { RawValue = GetSafezoneDefinition(parentBlock).SafeZoneUpkeep * 1_000_000 };
+            if (safeZoneUpkeep == MyFixedPoint.Zero) return true;
 
             MyInventory inventory = MyEntityExtensions.GetInventory(parentBlock);
             if (inventory == null) return false;
 
             if (instance.SafeZoneEntityId != 0 && MyEntities.GetEntityById(instance.SafeZoneEntityId) is MySafeZone safeZone && safeZone.Enabled)
             {
-                var zoneChipsRequired = new MyFixedPoint() { RawValue = (remainingTime.Ticks / safeZoneUpkeepTime.Ticks * safeZoneUpkeep + safeZoneUpkeep) * 1_000_000 };
-                if (!ConsumeZoneChips(zoneChipsRequired, inventory, parentBlock)) return false;
+                var requiredZoneChips = new MyFixedPoint() { RawValue = remainingTime.Ticks / safeZoneUpkeepTime.Ticks * 1_000_000 } * safeZoneUpkeep;
+                var requiredUpkeep = MyFixedPoint.Floor(requiredZoneChips * ChipConsumptionMultiplier) + safeZoneUpkeep;
+                if (!ConsumeZoneChips(requiredUpkeep, inventory, parentBlock)) return false;
                 upkeepTime = safeZoneUpkeepTime - new TimeSpan(remainingTime.Ticks % safeZoneUpkeepTime.Ticks) + totalPlayTime;
             }
             else
-            {
-                var zoneChipsRequired = new MyFixedPoint() { RawValue = safeZoneUpkeep * 1_000_000 };
-            
-                if (!TryConsumeZoneChips(zoneChipsRequired, inventory, parentBlock)) return false;
+            {            
+                if (!TryConsumeZoneChips(safeZoneUpkeep, inventory, parentBlock)) return false;
                 upkeepTime = safeZoneUpkeepTime + totalPlayTime;
             }
 
